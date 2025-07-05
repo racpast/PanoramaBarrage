@@ -1,9 +1,27 @@
+-- Set SQL environment for compatibility
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
 -- 运行前请确保已经选择了目标数据库
 -- 例如：USE your_database_name;
+
+CREATE TABLE `users` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `avatar_url` varchar(255) DEFAULT 'img/default-avatar.png',
+  `is_verified` tinyint(1) DEFAULT '0',
+  `verification_code` varchar(255) DEFAULT NULL,
+  `password_reset_token` varchar(255) DEFAULT NULL,
+  `password_reset_expires` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `barrages` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -32,20 +50,5 @@ CREATE TABLE `barrage_reports` (
   CONSTRAINT `barrage_reports_ibfk_2` FOREIGN KEY (`reporter_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-CREATE TABLE `users` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `password_hash` varchar(255) NOT NULL,
-  `verification_code` varchar(255) DEFAULT NULL,
-  `is_verified` tinyint(1) DEFAULT '0',
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `avatar_url` varchar(255) DEFAULT 'img/default-avatar.png',
-  `password_reset_token` varchar(255) DEFAULT NULL,
-  `password_reset_expires` datetime DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`),
-  UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 COMMIT;
