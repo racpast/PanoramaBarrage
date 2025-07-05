@@ -112,6 +112,7 @@ function handleReportRequest(PDO $db): void
                                 th,td{padding:8px;border:1px solid #ddd;text-align:left;}
                                 th{background:#f5f5f5;}
                                 .footer{font-size:12px;color:#999;margin-top:20px;}
+                                p { margin: 0 0 1em 0;  }
                             </style>
                             </head>
                             <body>
