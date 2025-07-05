@@ -50,5 +50,4 @@ CREATE TABLE `barrage_reports` (
   CONSTRAINT `barrage_reports_ibfk_2` FOREIGN KEY (`reporter_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
-
 COMMIT;
