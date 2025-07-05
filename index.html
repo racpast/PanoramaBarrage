@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>全景留言墙</title>
+    <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+    <script>
+        (function showOpenSourceInfo() {
+          const asciiArtStyle = 'font-family: monospace; color: #e84393;';
+          const asciiArt = `
+       ________  ________  ________   ________                                  
+      |\\   __  \\|\\   __  \\|\\   ___  \\|\\   __  \\                                 
+      \\ \\  \\|\\  \\ \\  \\|\\  \\ \\  \\\\ \\  \\ \\  \\|\\  \\                                
+       \\ \\   ____\\ \\   __  \\ \\  \\\\ \\  \\ \\  \\\\\\  \\                               
+        \\ \\  \\___|\\ \\  \\ \\  \\ \\  \\\\ \\  \\ \\  \\\\\\  \\                              
+         \\ \\__\\    \\ \\__\\ \\__\\ \\__\\\\ \\__\\ \\_______\\                             
+          \\|__|     \\|__|\\|__|\\|__| \\|__|\\|_______|                             
+                                                                                
+       ________  ________  ________  ________  ________  ________  _______      
+      |\\   __  \\|\\   __  \\|\\   __  \\|\\   __  \\|\\   __  \\|\\   ____\\|\\  ___ \\     
+      \\ \\  \\|\\ /\\ \\  \\|\\  \\ \\  \\|\\  \\ \\  \\|\\  \\ \\  \\|\\  \\ \\  \\___|\\ \\   __/|    
+       \\ \\   __  \\ \\   __  \\ \\   _  _\\ \\   _  _\\ \\   __  \\ \\  \\  __\\ \\  \\_|/__  
+        \\ \\  \\|\\  \\ \\  \\ \\  \\ \\  \\\\  \\\\ \\  \\\\  \\\\ \\  \\ \\  \\ \\  \\|\\  \\ \\  \\_|\\ \\ 
+         \\ \\_______\\ \\__\\ \\__\\ \\__\\\\ _\\\\ \\__\\\\ _\\\\ \\__\\ \\__\\ \\_______\\ \\_______\\
+          \\|_______|\\|__|\\|__|\\|__|\\|__|\\|__|\\|__|\\|__|\\|__|\\|_______|\\|_______|
+          `;
+          console.log('%c' + asciiArt, asciiArtStyle);
+          console.log(`项目地址：%chttps://github.com/racpast/PanoramaBarrage`, 'color: #777; text-decoration: underline; cursor: pointer;');
+        })();
+    </script>
+    <script src="js/three/three.js"></script>
+    <script src="js/tpanorama/tpanorama.js"></script>
+    <script src="js/pickr/pickr.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/pickr/classic.min.css"/>
+    <link rel="stylesheet" href="css/main.css"/>
+</head>
+<body>
+
+<div id="panoramaContainer"></div>
+<div class="user-area" id="userArea"></div>
+<div class="barrage-container" id="barrageContainer"></div>
+
+<div class="modal-overlay" id="loginModal"> <div class="glass-modal"> <span class="modal-close" onclick="hideModal('loginModal')">&times;</span> <h2>登录</h2> <form id="loginForm"> <div class="input-box"> <i class="fas fa-envelope icon"></i> <input type="email" id="login-email" name="email" required> <label>邮箱</label> </div> <div class="input-box"> <i class="fas fa-lock icon"></i> <input type="password" id="login-password" name="password" required> <label>密码</label> </div> <button type="submit" class="modal-button">登 录</button> <div style="text-align: right; margin-top: 15px;"> <a href="#" onclick="event.preventDefault(); hideModal('loginModal'); showModal('requestResetModal');" style="color: #fff; font-size: 0.9em;">忘记密码？</a> </div> <div class="message-box" id="loginMessage"></div> </form> </div> </div>
+<div class="modal-overlay" id="registerModal"> <div class="glass-modal"> <span class="modal-close" onclick="hideModal('registerModal')">&times;</span> <h2>注册</h2> <form id="registerForm"> <div class="input-box"> <i class="fas fa-user icon"></i> <input type="text" id="register-username" name="username" required> <label>用户名</label> </div> <div class="input-box"> <i class="fas fa-envelope icon"></i> <input type="email" id="register-email" name="email" required> <label>邮箱</label> </div> <div class="input-box"> <i class="fas fa-lock icon"></i> <input type="password" id="register-password" name="password" required> <label>密码</label> </div> <button type="submit" class="modal-button">注 册</button> <div class="message-box" id="registerMessage"></div> </form> </div> </div>
+<div class="modal-overlay" id="changePasswordModal"> <div class="glass-modal"> <span class="modal-close" onclick="hideModal('changePasswordModal')">&times;</span> <h2>修改密码</h2> <form id="changePasswordForm"> <div class="input-box"> <i class="fas fa-key icon"></i> <input type="password" id="old-password" name="old_password" required> <label>旧密码</label> </div> <div class="input-box"> <i class="fas fa-lock icon"></i> <input type="password" id="new-password" name="new_password" required> <label>新密码</label> </div> <div class="input-box"> <i class="fas fa-check-circle icon"></i> <input type="password" id="confirm-password" name="confirm_password" required> <label>确认新密码</label> </div> <button type="submit" class="modal-button">确认修改</button> <div class="message-box" id="changePasswordMessage"></div> </form> </div> </div>
+<div class="modal-overlay" id="requestResetModal"> <div class="glass-modal"> <span class="modal-close" onclick="hideModal('requestResetModal')">&times;</span> <h2>找回密码</h2> <form id="requestResetForm"> <div class="input-box"> <i class="fas fa-at icon"></i> <input type="email" id="reset-email" name="email" required> <label>请输入您的注册邮箱</label> </div> <button type="submit" class="modal-button">发送重置链接</button> <div class="message-box" id="requestResetMessage"></div> </form> </div> </div>
+<div class="modal-overlay" id="resetPasswordModal"> <div class="glass-modal"> <span class="modal-close" onclick="hideModal('resetPasswordModal')">&times;</span> <h2>设置新密码</h2> <form id="resetPasswordForm"> <input type="hidden" id="reset-token" name="token"> <div class="input-box"> <i class="fas fa-lock icon"></i> <input type="password" id="reset-new-password" name="new_password" required> <label>新密码</label> </div> <div class="input-box"> <i class="fas fa-check-circle icon"></i> <input type="password" id="reset-confirm-password" name="confirm_password" required> <label>确认新密码</label> </div> <button type="submit" class="modal-button">确认重置</button> <div class="message-box" id="resetPasswordMessage"></div> </form> </div> </div>
+
+<div class="control-panel" id="controlPanel"> <button id="panelToggleButton" class="panel-toggle-button"><i class="fas fa-chevron-up"></i></button>
+
+    <div class="panel-main-row">
+      <div class="wave-group">
+        <input required type="text" id="textInput" name="text" autocomplete="off" class="input" disabled>
+        <span class="bar"></span>
+        <label class="label" id="textInputLabel"></label>
+        <span class="char-counter"></span>
+      </div>
+        <button class="send-button" id="sendButton" disabled>
+            <div class="svg-wrapper-1"><div class="svg-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 1rem; height: 1rem;">
+                    <path fill="none" d="M0 0h24v24H0z"></path>
+                    <path fill="currentColor" d="M1.946 9.315c-.522-.174-.527-.455.01-.634l19.087-6.362c.529-.176.832.12.684.638l-5.454 19.086c-.15.529-.455.547-.679.045L12 14l6-8-8 6-8.054-2.685z"></path>
+                </svg>
+            </div></div>
+            <span>发送</span>
+        </button>
+    </div>
+
+    <div class="panel-options-row">
+        <div class="color-pickers-wrapper">
+            <div class="color-picker-group">
+                <span>文字：</span>
+                <div id="text-color-picker"></div>
+            </div>
+            <div class="color-picker-group">
+                <span>背景：</span>
+                <div id="bg-color-picker"></div>
+            </div>
+        </div>
+        <div class="tab-input">
+            <label><input value="right" name="mode" type="radio" checked><span><i class="fas fa-long-arrow-alt-right"></i> 向右</span></label>
+            <label><input value="left" name="mode" type="radio"><span><i class="fas fa-long-arrow-alt-left"></i> 向左</span></label>
+            <label><input value="center" name="mode" type="radio"><span><i class="fas fa-bullseye"></i> 居中</span></label>
+            <span class="selection"></span>
+        </div>
+        <div class="radio-input">
+            <label><input value="50" name="speed" type="radio"><span>极慢</span></label>
+            <label><input value="80" name="speed" type="radio"><span>较慢</span></label>
+            <label><input value="120" name="speed" type="radio" checked><span>中速</span></label>
+            <label><input value="180" name="speed" type="radio"><span>较快</span></label>
+            <label><input value="250" name="speed" type="radio"><span>极快</span></label>
+            <span class="selection"></span>
+        </div>
+        <div class="switch-group">
+            <span>隐藏弹幕：</span>
+            <label class="switch">
+                <input type="checkbox" id="hideBarragesCheckbox">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+</div>
+
+<div id="barrageContextMenu" class="custom-context-menu">
+    <ul>
+        <li id="copyMenuItem"><i class="fas fa-copy"></i> 复制弹幕内容</li>
+        <li id="reportMenuItem"><i class="fas fa-flag"></i> 举报此弹幕</li>
+    </ul>
+</div>
+<input type="file" id="avatarUploadInput" style="display: none;" accept="image/jpeg, image/png, image/gif">
+<script src="js/app.js"></script>
+</body>
+</html>

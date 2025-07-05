@@ -1,0 +1,203 @@
+<?php
+/**
+ * ============================================================================
+ * 全景留言墙 - 项目配置文件模板
+ * ============================================================================
+ *
+ * @package     PanoramaBarrage
+ * @author      Racpast
+ * @version     1.0.0
+ * @license     MIT
+ *
+ * @description
+ * 该文件包含项目运行所需的所有核心配置项。
+ * 在部署项目时，请将此文件复制为 `config.php`，并填写真实的数据库与邮件配置。
+ */
+
+
+// ============================================================================
+// 数据库配置
+// ============================================================================
+
+// 数据库服务器地址
+define('DB_HOST', 'your_db_host');
+
+// 数据库名称
+define('DB_NAME', 'your_db_name');
+
+// 数据库用户名
+define('DB_USER', 'your_db_user');
+
+// 数据库密码
+define('DB_PASS', 'your_db_password');
+
+
+// ============================================================================
+// 邮件发送配置
+// ============================================================================
+
+// 邮件发送方式，可选 'smtp' 或 'mail'。推荐使用 'smtp'。
+define('MAIL_METHOD', 'smtp');
+
+// SMTP 服务器地址，例如：'smtp.qq.com'
+define('SMTP_HOST', 'smtp.example.com');
+
+// 用于登录 SMTP 服务器的邮箱地址
+define('SMTP_USER', 'your_email@example.com');
+
+// 邮箱的 SMTP 授权码（注意：不是登录密码）
+define('SMTP_PASS', 'your_app_specific_password');
+
+// SMTP 服务器端口。465 用于 SSL，587 用于 TLS。
+define('SMTP_PORT', 465);
+
+// SMTP 的加密方式，可选 'ssl' 或 'tls'
+define('SMTP_SECURE', 'ssl');
+
+// 发件人显示的昵称
+define('MAIL_FROM_NAME', '留言墙');
+
+// 发件人邮箱地址（建议与 SMTP_USER 一致）
+define('MAIL_FROM_EMAIL', 'your_email@example.com');
+
+
+// ============================================================================
+// 网站核心配置
+// ============================================================================
+
+// 网站公开访问的主域名，用于生成邮件链接等场景
+define('BASE_URL', 'https://your-domain.com');
+
+// 举报达到该次数将通知管理员
+define('REPORT_THRESHOLD', 10);
+
+// 管理员邮箱地址，用于接收举报通知
+define('ADMIN_EMAIL', 'admin@example.com');
+
+
+// ============================================================================
+// 业务逻辑配置
+// ============================================================================
+
+// 弹幕最大允许字数
+define('BARRAGE_MAX_LENGTH', 25);
+
+// 首次进入页面时加载的弹幕数量（按时间倒序）
+define('INITIAL_BARRAGE_LIMIT', 200);
+
+// 密码重置链接有效时长（单位：秒）
+define('PASSWORD_RESET_EXPIRY', 3600);
+
+
+// ============================================================================
+// 文件上传配置
+// ============================================================================
+
+// 头像上传的服务器物理绝对路径（末尾必须带斜杠 /）
+define('UPLOADS_PATH_AVATARS', __DIR__ . '/uploads/avatars/'); // __DIR__ 代表 config.php 文件所在的目录。
+
+// 头像上传后，用于Web访问的相对URL路径（末尾必须带斜杠 /）
+define('UPLOADS_URL_AVATARS', 'uploads/avatars/');
+
+// 用户头像最大文件大小（单位：字节），这里是 2MB
+define('AVATAR_MAX_SIZE', 2 * 1024 * 1024);
+
+// 允许上传的头像 MIME 类型（JSON 格式）
+define('AVATAR_ALLOWED_TYPES', '["image/jpeg", "image/png", "image/gif"]');
+
+
+// ============================================================================
+// 系统初始化与核心函数（通常无需修改）
+// ============================================================================
+
+// 启用 Session（用于登录状态保持）
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// 设置默认时区为中国标准时间（东八区）
+date_default_timezone_set('Asia/Shanghai');
+
+// 引入 Composer 自动加载器（确保 vendor 目录存在）
+require_once __DIR__ . '/vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+
+/**
+ * 获取数据库连接实例（PDO）。
+ *
+ * @return PDO 返回 PDO 数据库连接对象。
+ */
+function get_db_connection() {
+    try {
+        $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+        $options = [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES   => false,
+        ];
+        return new PDO($dsn, DB_USER, DB_PASS, $options);
+    } catch (PDOException $e) {
+        // 生产环境中不应直接暴露错误，改为返回统一的错误响应
+        http_response_code(500);
+        // 可以将详细错误记录到服务器日志中以便后期排查
+        // error_log("Database Connection Failed: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => '服务器开小差了，请稍后再试~']);
+        exit;
+    }
+}
+
+
+/**
+ * 统一的邮件发送函数。
+ *
+ * @param string $to      收件人邮箱地址。
+ * @param string $subject 邮件主题。
+ * @param string $body    邮件 HTML 正文内容。
+ *
+ * @return bool 发送成功返回 true，失败返回 false。
+ */
+function send_email($to, $subject, $body) {
+    // 使用 PHP 原生 mail 方法（不推荐，仅作备用）
+    if (MAIL_METHOD !== 'smtp') {
+        $headers  = "MIME-Version: 1.0\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8\r\n";
+        $headers .= 'From: ' . MAIL_FROM_NAME . ' <' . MAIL_FROM_EMAIL . ">\r\n";
+        return mail($to, $subject, $body, $headers);
+    }
+
+    // 使用 PHPMailer 发送邮件（推荐方式）
+    $mail = new PHPMailer(true);
+
+    try {
+        // SMTP 配置
+        $mail->isSMTP();
+        $mail->Host       = SMTP_HOST;
+        $mail->SMTPAuth   = true;
+        $mail->Username   = SMTP_USER;
+        $mail->Password   = SMTP_PASS;
+        $mail->SMTPSecure = SMTP_SECURE;
+        $mail->Port       = SMTP_PORT;
+        $mail->CharSet    = 'UTF-8';
+
+        // 发件人
+        $mail->setFrom(MAIL_FROM_EMAIL, MAIL_FROM_NAME);
+
+        // 收件人
+        $mail->addAddress($to);
+
+        // 内容设置
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $body;
+
+        $mail->send();
+        return true;
+    } catch (Exception $e) {
+        // 记录邮件发送失败的详细信息
+        // error_log("PHPMailer Error: {$mail->ErrorInfo}");
+        return false;
+    }
+}
