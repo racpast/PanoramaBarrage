@@ -101,6 +101,7 @@ function handleRegisterRequest(PDO $db): void
                         border-radius: 5px;
                         }
                         .footer { font-size: 12px; color: #999; margin-top: 20px; }
+                        p { margin: 0 0 1em 0;  }
                     </style>
                 </head>
                 <body>
