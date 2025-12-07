@@ -28,7 +28,7 @@ default: '#FFFFFF', // 默认颜色
 position: 'top-middle', // 弹出位置
 components: {
     preview: true,
-    opacity: true,
+    opacity: false,
     hue: true,
     interaction: {
         hex: false,
