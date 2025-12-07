@@ -123,7 +123,15 @@ function handlePostRequest(PDO $db): void
         ':mode' => $mode,                                // 弹幕模式：left、right 或 center。
         ':speed' => (int) ($_POST['speed'] ?? 100),        // 弹幕速度，默认值为 100。
     ];
+    
+    if (isset($barrageData['color']) && strlen($barrageData['color']) === 9) {
+        $barrageData['color'] = substr($barrageData['color'], 0, 7);
+    }
 
+    if (!preg_match('/^#[a-fA-F0-9]{6}$/', $barrageData['color'])) {
+        $barrageData['color'] = '#FFFFFF';
+    }
+    
     // 将弹幕数据插入数据库。
     $sql = "INSERT INTO barrages (user_id, content, color, bg_color, mode, speed)
             VALUES (:user_id, :content, :color, :bg_color, :mode, :speed)";
